@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoints xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime"
+	version="2.0">
+
+	<endpoint name="PackageManagement" 
+		implementation="com.accenture.environment.manager.services.PackageManagement"
+		url-pattern="/services/packageManagement" />
+		
+	<endpoint name="SVNManagement" 
+		implementation="com.accenture.environment.manager.services.SVNManagement"
+		url-pattern="/services/svnManagement" />
+
+		
+</endpoints>
