@@ -1,0 +1,2 @@
+GENERATE_PACKAGE_DEFAULT = deploy.sh export-for-sit
+SOURCE_BASH_PROFILE = source ~/.bash_profile

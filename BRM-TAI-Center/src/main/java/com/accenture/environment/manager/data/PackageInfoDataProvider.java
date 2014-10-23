@@ -1,6 +1,8 @@
 package com.accenture.environment.manager.data;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,16 +17,19 @@ import com.accenture.environment.manager.beans.PackageFile;
 import com.accenture.environment.manager.exceptions.CommandException;
 import com.accenture.environment.manager.exceptions.PackageException;
 import com.accenture.environment.manager.services.beans.DownloadPackageResponse;
+import com.accenture.environment.manager.services.beans.GeneratePackageResponse;
 import com.accenture.environment.manager.services.beans.PackageDetailsResponse;
 import com.accenture.environment.manager.utils.ApplicationProperties;
 import com.accenture.environment.manager.utils.SSHAdapter;
+import com.accenture.environment.manager.utils.SSHCommands;
 
 public class PackageInfoDataProvider {
 	
 	private PackageInfoDataProvider() { }
 	
 	private static PackageInfoDataProvider instance = null;
-	public ApplicationProperties applicationProperties = ApplicationProperties.getInstance();
+	private ApplicationProperties applicationProperties = ApplicationProperties.getInstance();
+	private SSHCommands sshCommands = SSHCommands.getInstance(); 
 	final static Logger logger = Logger.getLogger(PackageInfoDataProvider.class);
 	
 	public static PackageInfoDataProvider getInstance() {
@@ -69,9 +74,7 @@ public class PackageInfoDataProvider {
 				deploymentPackage.setDeployApp(members[2] + " " + members[3] + " " + members[4] + " " + members[5]);
 				deploymentPackage.setVersion(Integer.parseInt(members[6]));
 				deploymentPackage.setInstallationDateTimestamp(installationDate.getTime() / 1000);
-				
-				
-				
+							
 				listOfPackages.add(deploymentPackage);
 			}
 				        
@@ -154,13 +157,12 @@ public class PackageInfoDataProvider {
 			//3. Get revision number for each file in the package
 			
 			ssh.restartSession();
-			cmd = ssh.executeCommand(checkTempDirectoryCmdStr);
+			cmd = ssh.executeCommand(checkTempDirectoryCmdStr, true);
 			resultStr = cmd.getOutput().replaceAll("\\n", System.getProperty("line.separator"));
 			logger.debug("Result of command: (" + checkTempDirectoryCmdStr + "): " + System.getProperty("line.separator") + resultStr);
-				
-			
+						
 			//If directory tai_manager_tmp_directory exists, remove it
-			if(!resultStr.contains("No such file or directory")) {
+			if(cmd.getExitCode() == 0) {
 			
 				ssh.restartSession();
 				cmd = ssh.executeCommand(removeTempDirectoryCmdStr);
@@ -200,7 +202,6 @@ public class PackageInfoDataProvider {
 			String[] lines = resultFilesStr.split(System.getProperty("line.separator"));
 			
 			for(String line : lines) {
-				
 				String[] members = line.split("\\s");
 				String filepath = members[members.length - 1];
 				
@@ -245,8 +246,7 @@ public class PackageInfoDataProvider {
 					}
 					
 					if(!filesInPackageList.contains(pf))
-						filesInPackageList.add(pf);
-					
+						filesInPackageList.add(pf);					
 				}
 			}
 			
@@ -270,7 +270,7 @@ public class PackageInfoDataProvider {
 			e.printStackTrace();
 		} catch (CommandException e) {
 			
-			logger.error("Error while executing the command \"" + checkPackageCommandStr + "\". Exit code " + e.getExitStatus() + ")");
+			logger.error("Error while executing the command \"" + e.getExecutedCommand() + "\". Exit code " + e.getExitStatus() + ")");
 			e.printStackTrace();
 		} catch (Exception e) {
 			
@@ -291,8 +291,7 @@ public class PackageInfoDataProvider {
 		
 		return packageDetailsRet;
 		
-	}	
-	
+	}		
 	
 	public DownloadPackageResponse downloadPackage(String environmentName, long packageVersion) throws PackageException {
 		
@@ -322,6 +321,113 @@ public class PackageInfoDataProvider {
 		response.setPackageContentStream(baos.toByteArray());
 		response.setPackageName(applicationProperties.getPackagePrefixName() + "." + packageVersion + ".tar.gz");
 				
+		return response;
+	}
+	
+	
+	public GeneratePackageResponse generatePackage(String branchName, List<String> includedFiles) throws PackageException  {
+		
+		SSHAdapter ssh = new SSHAdapter();
+		GeneratePackageResponse response = new GeneratePackageResponse();
+		String includeFileContent = "";
+		
+		//1. Prepare the file 'include' to be uploaded in the environment
+		
+		logger.debug("generatePackage: Uploading file " + applicationProperties.getIncludeFileName() + " to " + applicationProperties.getDeployOperatorEnvironment().getEnvironmentName() + " environment ("  +
+				applicationProperties.getDeployOperatorEnvironment().getEnvironmentIp() + "). Target filepath: " + applicationProperties.getDeployOperatorDirectory() + "/" + applicationProperties.getIncludeFileName());
+		
+		logger.debug("generatePackage: Content of the file:");
+		
+		for(String entry : includedFiles) {
+			logger.debug(" - " + entry);
+			includeFileContent += entry + "\n";
+		}
+		
+		File file = new File(applicationProperties.getIncludeFileName());
+		FileOutputStream fileOuputStream = null;
+		
+		try {
+			
+			fileOuputStream = new FileOutputStream(file);
+			fileOuputStream.write(includeFileContent.getBytes());
+			fileOuputStream.flush();
+		} catch (IOException e) {
+			logger.error("Error while writing to the file " + applicationProperties.getIncludeFileName() + "!");
+			e.printStackTrace();
+			throw new PackageException("Error while writing to the file " + applicationProperties.getIncludeFileName() + "!");
+		} finally {
+			try {
+				fileOuputStream.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}		 
+		
+		//---------//
+		
+		String commandStr = "";
+		CommandResult cmd;
+		String resultStr = "";
+		String generatedPackageName = "";
+		
+		try {
+			
+			//2. Upload 'include' file to the environment, where the package will be generated
+			ssh.uploadFile(applicationProperties.getDeployOperatorEnvironment(), applicationProperties.getIncludeFileName(), applicationProperties.getDeployOperatorDirectory(), file);
+			
+			logger.debug("generatePackage: The file " + applicationProperties.getIncludeFileName() + " has been uploaded succesfully.");
+			
+			//3. Call deploy.sh script to generate the package in the environment
+			ssh = new SSHAdapter();
+			ssh.connect(applicationProperties.getDeployOperatorEnvironment());
+			//ssh.sourceBashProfile();
+			
+			commandStr = sshCommands.getSourceBashProfile() + ";" + applicationProperties.getDeployOperatorDirectory() + "/" + sshCommands.getGeneratePackageDefault();
+			cmd = ssh.executeCommand(commandStr);
+			resultStr = cmd.getOutput().replaceAll("\\n", System.getProperty("line.separator"));
+			
+			logger.debug("generatePackage: Result of command: (" + commandStr + "): " + System.getProperty("line.separator") + resultStr);
+			
+			String[] resultLines = resultStr.split(System.getProperty("line.separator"));
+			generatedPackageName = resultLines[resultLines.length - 1];
+			
+			logger.debug("generatePackage: The package " + generatedPackageName + " has been generated successfully.");
+
+			
+			//4. Downloading generated package
+			String generatedPackageFilepath = applicationProperties.getDeployOperatorDirectory() + "/" + generatedPackageName;
+			
+			logger.debug("generatePackage: Downloading generated package from " + generatedPackageFilepath + "...");
+			ByteArrayOutputStream baos = ssh.downloadFile(applicationProperties.getDeployOperatorEnvironment(), generatedPackageFilepath);
+			logger.debug("generatePackage: The package " + generatedPackageName + " downloaded successfully.");			
+			
+			response.setPackageContentStream(baos.toByteArray());
+			response.setPackageName(generatedPackageName);
+			
+		} catch (CommandException e) {
+			
+			String message = "Error while executing the command \"" + commandStr + "\". Exit code " + e.getExitStatus() + ")";
+			logger.error(message);
+			e.printStackTrace();
+			throw new PackageException(message);
+		} catch (IOException e) {
+			
+			String message = "Error while SSH processing: " + e.getMessage();
+			logger.error(message);
+			e.printStackTrace();
+			throw new PackageException(message);
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			
+			try {
+				ssh.disconnect();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
+		
+		
 		return response;
 	}
 	

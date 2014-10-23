@@ -85,6 +85,11 @@ div#menu-left {
 	width: 15%;
 }
 
+div.tabs-left {
+	
+	cursor: pointer;
+}
+
 div.tabs-left-active {
 	
 	height: 50px;
@@ -131,6 +136,7 @@ div.main-div-element {
 div#new-package-checkboxes-environments,
 div#new-package-select-branches {
 	
+	width: 300px;
 	padding: 10px;
 		
 }
@@ -139,7 +145,7 @@ div#new-package-select-files {
 	
 	padding: 10px;
 	width: 95%;
-	height: 400px;
+	height: 600px;
 }
 
 div#new-package-select-files-left {
@@ -178,6 +184,184 @@ div#new-package-select-files-right {
 }
 
 
+div#veil-select-revision {
+	
+	z-index: 10000;
+	width: 100%;
+	height: 100%;
+	background: black;
+	top: 0;
+	left: 0;
+	position: fixed;
+	text-align: center;
+	opacity: 0;
+}
+
+div#veil-select-revision-main-box {
+	
+	z-index: 100000;
+	text-align: center;
+	width: 900px;
+	min-height: 300px;
+	border: 1px solid #E0CFC2;
+	position: fixed;
+	background-color: #F4F0EC;
+	margin: auto;
+	margin-top: 100px;	
+	margin-left: 100px;
+}
+
+div#veil-select-revision-main-box-header {
+	
+	margin: auto;
+	width: 100%;
+	height: 50px;
+	background-color: #D09043;
+}
+
+span#veil-select-revision-main-box-header-content {
+	
+	margin: auto;
+	text-align: center;	
+}
+
+div#veil-select-revision-main-box-content {
+	
+	padding: 10px;	
+}
+
+.veil-button {
+	
+	position: relative;
+	width: 80px;
+	height: 30px;
+	background-color: #B9CCE1;
+	text-align: center;
+	font: Verdana, Geneva, sans-serif;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+div#veil-select-revision-main-box-content-select {
+	
+	left: 250px;
+}
+
+div#veil-select-revision-main-box-content-cancel {
+	
+	left: 350px;
+	top: -46px;
+}
+
+div#generate-package-button {
+	
+	width: 200px;
+	height: 50px;
+	position: relative;
+	background-color: #B9CCE1;
+	text-align: center;
+	font: Verdana, Geneva, sans-serif;
+	font-size: 20px;
+	font-weight: bold;
+	cursor: pointer;
+	margin: auto; 
+	margin-bottom: 30px;
+	
+}
+
+div#generate-package-button p {
+	
+	padding-top: 10px;
+}
+
+input#new-package-select-files-search-textbox {
+	
+	width: 300px;
+	height: 30px;
+	margin-left: 10px;
+}
+
+input.textbox-tip {
+	
+	font-style:italic;
+	color:#999999;
+	font-size:16px;
+	text-align:left;
+	font-family:trebuchet MS, sans-serif;
+	
+}
+
+img.search-icon {
+	
+	width: 35px;
+	height: 35px;
+	margin-left: 10px;
+	position: relative;
+	top: 10px;
+	cursor: pointer;
+}
+
+.alert-veil {
+	
+	z-index: 10000;
+	width: 100%;
+	height: 100%;
+	background: black;
+	top: 0; 
+	left: 0;
+	position: fixed;
+	opacity: 0;
+}
+
+div#new-package-validation-error-veil-box {
+	
+	z-index: 100000;
+	width: 400px;
+	background-color: #DEECFA;
+	boder: 1px solid #F4F0EC;
+	position: fixed;
+	left: 35%;
+	right: 35%;
+	text-align: center;
+}
+
+div.veil-hidden {
+	
+	display: none;
+}
+
+div.veil-displayed {
+	
+	display: inline;
+}
+
+span#new-package-validation-error-veil-box-header {
+	
+	display: block;
+	margin: 10px;
+	text-align: center;
+	font-family: Geneva, Tahoma, Verdana, sans-serif;
+	color: #FF0000;
+	font-size: 16;
+	font-weight: bold;
+}
+
+span#new-package-validation-error-veil-box-content {
+	
+	display: block;
+	margin: 10px;
+	text-align: center;
+	font-family: Geneva, Tahoma, Verdana, sans-serif;
+	font-size: 14;
+}
+
+div#new-package-validation-error-veil-box-button {
+	
+	text-align: center;
+	margin: auto;
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
 
 
  

@@ -1,22 +1,16 @@
 package com.accenture.environment.manager.beans;
 
 import java.util.Date;
+
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-public class SVNFile extends File {
+public class SVNHistory {
 
 	private long revision;
 	private String author;
 	private Date date;
-	private boolean isDirectory;
+	private String comment;
 	
-	
-	public boolean isDirectory() {
-		return isDirectory;
-	}
-	public void setDirectory(boolean isDirectory) {
-		this.isDirectory = isDirectory;
-	}
 	public long getRevision() {
 		return revision;
 	}
@@ -36,5 +30,11 @@ public class SVNFile extends File {
 	}
 	public void setDate(Date date) {
 		this.date = date;
+	}
+	public String getComment() {
+		return comment;
+	}
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 }

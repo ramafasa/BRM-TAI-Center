@@ -18,6 +18,8 @@ import com.accenture.environment.manager.data.PackageInfoDataProvider;
 import com.accenture.environment.manager.exceptions.PackageException;
 import com.accenture.environment.manager.services.beans.DownloadPackageRequest;
 import com.accenture.environment.manager.services.beans.DownloadPackageResponse;
+import com.accenture.environment.manager.services.beans.GeneratePackageRequest;
+import com.accenture.environment.manager.services.beans.GeneratePackageResponse;
 import com.accenture.environment.manager.services.beans.InstalledPackageRequest;
 import com.accenture.environment.manager.services.beans.InstalledPackageResponse;
 import com.accenture.environment.manager.services.beans.PackageDetailsRequest;
@@ -98,5 +100,16 @@ public class PackageManagement {
 	    
 		return response;
 	
+	}
+	
+	@MTOM
+	@WebMethod(operationName = "GeneratePackage")
+	@WebResult(name = "generatePackageResponse")
+	public GeneratePackageResponse generatePackage(@WebParam(name = "generatePackageRequest") @XmlElement(required = true) GeneratePackageRequest input) throws PackageException, IOException {
+ 
+		PackageInfoDataProvider dm = PackageInfoDataProvider.getInstance();
+		GeneratePackageResponse response = dm.generatePackage(input.getBranchName(), input.getIncludedFiles());
+	    
+		return response;	
 	}
 }

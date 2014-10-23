@@ -7,7 +7,10 @@ public class EnvironmentData {
 	private String username;
 	private String password;
 	
-		
+	public EnvironmentData() { 
+		super(); 
+	}	
+	
 	public EnvironmentData(String environmentName, String environmentIp,
 			String username, String password) {
 		super();
